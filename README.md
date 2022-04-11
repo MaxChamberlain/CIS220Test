@@ -1,4 +1,4 @@
-<div style='background-color: #8210c9; width: 100%; text-align: center'> CIS220Test </div>
+# CIS220Test
 # This project is made in NodeJS, but I have described the differences in the file comments
 
 ### For this program, you will create an array of ordersm consisting of order number and order status (i.e [['order_1','unfulfilled'],['order_2','fulfilled']])
