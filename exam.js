@@ -27,7 +27,7 @@ const LIGHTMINUS = new Gpio(20,  'out')
 const LIGHTPLUS = new Gpio(16,  'out')
 
 // A basic array of orders with varying fulfillment statuses
-const orders = [['order_1', 'unfulfilled'],['order_1', 'unfulfilled'],['order_2', 'unfulfilled'],['order_3', 'fulfilled'],['order_4', 'unfulfilled'],['order_5', 'fulfilled'],['order_6', 'unfulfilled']]
+const orders = [['order_0', 'unfulfilled'],['order_1', 'fulfilled'],['order_2', 'unfulfilled'],['order_3', 'fulfilled'],['order_4', 'unfulfilled'],['order_5', 'fulfilled'],['order_6', 'unfulfilled']]
 
 // Define which of the 7 segments will be turned on to create the given number
 const numbers = {
@@ -43,6 +43,8 @@ const numbers = {
     '9': [BL, DP]
 }
 
+let amount = 0
+
 
 // Main function to run
 async function run(){
@@ -56,16 +58,35 @@ async function run(){
         
       // If this loop has run before, the number will have a value, 
       // if there is a value, it is now the previous amount. Otherwise the previous amount is 0
-      let prevAmt = number ? number : 0
+      let prevAmt = amount ? amount : 0
 
       // Filter the array of orders to grab only the unfulfilled orders
-        number = orders.filter(e => e[1] === 'unfulfilled').length
+        amount = orders.filter(e => e[1] === 'unfulfilled').length
 
-        // Display whether the number of orders has changed, and if so,
+        // For the 1 second the loop is running, display the number. If there is not a number, display 0
+        while(running) {
+            await light(D1, String(amount)[String(amount).length - 4] ?  String(amount)[String(amount).length - 4] : 0)
+            await light(D2, String(amount)[String(amount).length - 3] ?  String(amount)[String(amount).length - 3] : 0)
+            await light(D3, String(amount)[String(amount).length - 2] ?  String(amount)[String(amount).length - 2] : 0)
+            await light(D4, String(amount)[String(amount).length - 1] ?  String(amount)[String(amount).length - 1] : 0)
+        }
+        // Generate a random number. If more than 50, add it to the list. otherwise, remove the last order from the list
+        let temp = Math.round(Math.random()*100)
+        let status = temp > 75 ? 'fulfilled' : 'unfulfilled'
+        if(temp > 50){
+          orders.push([`order_${orders.length}`, status])
+        }else{
+          orders.pop()
+        }
+
+        // Show the new array, but only the unfulfilled orders
+        console.table(orders.filter(e => e[1] === 'unfulfilled'))
+
+                // Display whether the number of orders has changed, and if so,
         // whether it is a positive or negative change
-        if(number !== prevAmt){
+        if (status === 'unfulfilled'){
           LIGHTON.writeSync(1)
-            if(number > prevAmt){
+            if(temp > 50){
               LIGHTPLUS.writeSync(1)
             }else{
               LIGHTMINUS.writeSync(1)
@@ -83,14 +104,6 @@ async function run(){
           LIGHTMINUS.writeSync(0)
           LIGHTPLUS.writeSync(0)
           LIGHTON.writeSync(0)
-        }
-
-        // For the 1 second the loop is running, display the number. If there is not a number, display 0
-        while(running) {
-            await light(D1, String(number)[String(number).length - 4] ?  String(number)[String(number).length - 4] : 0)
-            await light(D2, String(number)[String(number).length - 3] ?  String(number)[String(number).length - 3] : 0)
-            await light(D3, String(number)[String(number).length - 2] ?  String(number)[String(number).length - 2] : 0)
-            await light(D4, String(number)[String(number).length - 1] ?  String(number)[String(number).length - 1] : 0)
         }
     }
 }
